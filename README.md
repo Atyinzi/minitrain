@@ -30,10 +30,11 @@ CPU 可以运行基础功能；GPU 和多卡功能需要相应硬件及运行环
 在仓库根目录运行。下面使用随机 token 做训练流程检查，并非真实语料训练：
 
 ```bash
-uv run python -m scripts.minitrain --device cpu --steps 1 --context-length 16 --vocab-size 256
+uv run python -m scripts.minitrain --device cpu --model-size tiny --steps 2 --context-length 16 --vocab-size 256
 ```
 
-默认 `small` 仍有 12 层，CPU 执行可能较慢。真实训练使用预先分词的连续
+`tiny` 仅用于快速检查训练流程，不能代表真实模型质量。默认 `small` 有 12 层，
+CPU 执行可能较慢。真实训练使用预先分词的连续
 `uint16` token ID 文件，词表大小需与 tokenizer 一致：
 
 ```bash
@@ -46,6 +47,7 @@ uv run python -m scripts.minitrain --device cuda --train-bin data/train.bin --va
 uv run python -m scripts.minitrain --device cuda --train-bin data/train.bin --resume results/minitrain.pt --steps 2000
 ```
 
+`--steps` 表示本次再训练的步数，上面的命令在原 checkpoint 的步数上再训练 2000 步。
 恢复时请保持模型、数据和并行配置与原训练相容。ZeRO-1 的优化器分片文件也需要保留。
 
 评估 checkpoint：
@@ -70,9 +72,14 @@ uv run python -m scripts.minitrain_inference --help
 ## 验证与实验
 
 ```bash
-uv run pytest tests/test_minitrain_inference.py tests/test_parallel_report.py
+uv run pytest -q tests
 ```
 
+其中 `test_minitrain_workflow.py` 使用合成 token 验证 CPU 训练、验证集评估、
+checkpoint 保存与恢复的一致性，以及推理命令对同一 checkpoint 的评估。
+GitHub Actions 在 Linux CPU 环境对完整测试集运行此命令；Triton 用例只有在
+CUDA 与 Triton 都可用时才会运行。GPU 性能、多卡硬件和真实语料的模型质量
+不在 CPU 测试的验证范围内。
 其他 attention 和分布式测试位于 `tests/`，部分测试要求 CUDA 或多进程通信支持。
 基准脚本位于 `scripts/benchmark_*.py`；中文实现说明见
 [WRITEUP_GUIDE_CN.md](WRITEUP_GUIDE_CN.md)。其中历史测试记录和路径来自原开发环境，

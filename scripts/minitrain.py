@@ -20,6 +20,7 @@ from cs336_systems.distributed import DistributedDataParallel, FullyShardedDataP
 
 
 MODEL_CONFIGS = {
+    "tiny": (32, 64, 2, 4),
     "small": (768, 3072, 12, 12),
     "medium": (1024, 4096, 24, 16),
     "large": (1280, 5120, 36, 20),

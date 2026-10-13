@@ -1,0 +1,25 @@
+name: Verify MiniTrain
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  cpu:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v10.1.0
+        with:
+          enable-cache: true
+      - name: Install Python and locked dependencies
+        run: |
+          uv python install 3.13
+          uv sync --locked
+      - name: Run CPU tests, including train-resume-inference workflow
+        run: uv run pytest -q tests

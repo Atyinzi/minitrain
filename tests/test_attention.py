@@ -1,3 +1,5 @@
+import importlib.util
+
 import pytest
 import torch
 from einops import einsum, rearrange
@@ -6,6 +8,8 @@ from .adapters import (
     get_flashattention_autograd_function_pytorch,
     get_flashattention_autograd_function_triton,
 )
+
+TRITON_READY = torch.cuda.is_available() and importlib.util.find_spec("triton") is not None
 
 
 def _attention_and_lse(q, k, v, is_causal=False):
@@ -64,8 +68,8 @@ def test_flash_forward_pass_pytorch():
 
 
 @pytest.mark.skipif(
-    not torch.cuda.is_available(),
-    reason="A GPU must be available to run Triton kernels",
+    not TRITON_READY,
+    reason="Triton kernels require CUDA and the triton package",
 )
 @pytest.mark.parametrize("is_causal", [False, True])
 def test_flash_forward_pass_triton(is_causal):
@@ -90,8 +94,8 @@ def test_flash_backward_pytorch():
 
 
 @pytest.mark.skipif(
-    not torch.cuda.is_available(),
-    reason="A GPU must be available to run Triton kernels",
+    not TRITON_READY,
+    reason="Triton kernels require CUDA and the triton package",
 )
 @pytest.mark.parametrize("is_causal", [False, True])
 def test_flash_backward_triton(is_causal):
